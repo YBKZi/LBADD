@@ -1320,7 +1320,7 @@ function drawTitle(){
  ctx.fillStyle='rgba(5,3,14,.62)';ctx.fillRect(0,92,W,150);
  logo('STAND BATTLE',W/2,200,140);
  txt('ARCADE EDITION',W/2,236,26,'#7fe0ff','center',4);
- if(G.t%60<38)txt(G.credit>0?'PREMI START':'INSERT COIN',W/2,498,32,'#fff','center',5);
+ if(G.t%60<38)txt('PREMI UN TASTO QUALSIASI',W/2,498,32,'#fff','center',5);
  txt('CREDIT '+String(G.credit).padStart(2,'0'),W-30,H-18,22,'#ffd678','right',4);padTag();
  HOT.push({x:0,y:0,w:W,h:H,fn:()=>{G.credit=Math.max(1,G.credit);G.scene='menu';sfx('ok');}});
 }
@@ -1501,7 +1501,7 @@ function update(){
  if(AUTOJOIN&&G.scene!=='title'&&G.scene!=='lobby'){const c=AUTOJOIN;AUTOJOIN=null;G.scene='lobby';LOB.st='join';LOB.typed=c;netJoin(c);}
  if(NETF.on){if(netTick())return;}
  const sc=G.scene;
- if(sc==='title'){if(CONFIRM()||anyEdge('Space')){G.credit=Math.max(1,G.credit);G.scene='menu';sfx('coin');}}
+ if(sc==='title'){if(Object.keys(EDGE).some(k=>EDGE[k])){G.credit=Math.max(1,G.credit);G.scene='menu';sfx('coin');}}
  else if(sc==='menu')menuUpdate();
  else if(sc==='select')selectUpdate();
  else if(sc==='lobby')lobbyUpdate();
