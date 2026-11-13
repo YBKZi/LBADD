@@ -1,0 +1,6 @@
+it-IT-DiegoNeural                  Male      General                Friendly, Positive
+it-IT-ElsaNeural                   Female    General                Friendly, Positive
+it-IT-GiuseppeMultilingualNeural   Male      General                Friendly, Positive
+it-IT-IsabellaNeural               Female    General                Friendly, Positive
+ja-JP-KeitaNeural                  Male      General                Friendly, Positive
+ja-JP-NanamiNeural                 Female    General                Friendly, Positive
