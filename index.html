@@ -782,10 +782,10 @@ function poseR(f){
 })();
 // correzione per-frame: la testa deve avere la stessa grandezza in ogni posa (misurata sulle sheet)
 const HDF={
- ema:{f22:.93,f25:.95,f29:1.05,f31:1.05,f33:.93,f34:.9,f35:.93},
- kev:{f32:1.07,f35:1.1,f40:1.1,f43:.88,f44:1.03,f45:.91,f46:.97},
- dan:{f23:1.1,f35:1.07,f39:1.12,f40:1.1,f42:1.05},
- joker:{f22:1.12,f31:1.12,f33:.94,f35:.95,f34:1.03,f36:1.03}
+ ema:{f22:.93,f25:.95,f29:.9,f30:.9,f31:1.05,f33:.78,f34:.8,f35:.8,f36:.72},
+ kev:{f32:1.07,f35:1,f40:.9,f43:.75,f44:.85,f45:.82,f46:.97},
+ dan:{f23:1.1,f35:.95,f38:.85,f39:1.12,f40:1,f42:.85,f43:.82,f44:.74},
+ joker:{f22:1.12,f31:1.12,f32:.9,f34:.88,f35:.9,f36:.85,f37:.95,f33:.94}
 };
 for(const k in HDF)if(SETS[k])Object.assign(SETS[k].sps,HDF[k]);
 /* ---------------- DISEGNO: TESTA E PERSONAGGIO ---------------- */
