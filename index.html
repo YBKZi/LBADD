@@ -780,6 +780,14 @@ function poseR(f){
   regSet(k,{img:im,meta:SPD[k].m,sps:{},rim:info[k].rim,port,K:info[k].K,noFade:true,pose:poseR,R:RL[k]},info[k].gm);
  }
 })();
+// correzione per-frame: la testa deve avere la stessa grandezza in ogni posa (misurata sulle sheet)
+const HDF={
+ ema:{f22:.93,f25:.95,f29:1.05,f31:1.05,f33:.93,f34:.9,f35:.93},
+ kev:{f32:1.07,f35:1.1,f40:1.1,f43:.88,f44:1.03,f45:.91,f46:.97},
+ dan:{f23:1.1,f35:1.07,f39:1.12,f40:1.1,f42:1.05},
+ joker:{f22:1.12,f31:1.12,f33:.94,f35:.95,f34:1.03,f36:1.03}
+};
+for(const k in HDF)if(SETS[k])Object.assign(SETS[k].sps,HDF[k]);
 /* ---------------- DISEGNO: TESTA E PERSONAGGIO ---------------- */
 const OL='#0b0712';
 function drawHead(c,L,x,y,r,s){
@@ -1713,7 +1721,7 @@ function frame(now){
  while(acc>=1000/60){acc-=1000/60;update();}
  render();requestAnimationFrame(frame);
 }
-window.__sb={vo,VL,VO,SETS,SETOF,NETF,LOB,netHost,netJoin,netLeave,TR:()=>TR,fxTimeStop,sfx,SFX,fxDust,tsd:()=>!!TSD,rain:()=>!!RAINN,mst:()=>[!!AC&&AC.state,!!musBuf,!!musSrc,musGain?+musGain.gain.value.toFixed(2):null],G,update,render,CHARS,startMatch,keys,MUS,pressedQ:()=>pressedQ};
+window.__sb={vo,VL,VO,SETS,SETOF,NETF,LOB,netHost,netJoin,netLeave,TR:()=>TR,fxTimeStop,sfx,SFX,fxDust,tsd:()=>!!TSD,rain:()=>!!RAINN,mst:()=>[!!AC&&AC.state,!!musBuf,!!musSrc,musGain?+musGain.gain.value.toFixed(2):null],G,update,render,CHARS,startMatch,GROUND,keys,MUS,pressedQ:()=>pressedQ};
 requestAnimationFrame(frame);
 })();
 </script>
