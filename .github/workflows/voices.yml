@@ -1,0 +1,26 @@
+name: voices
+on:
+  push:
+    paths: ['voices/lines.json','voices/gen.py','.github/workflows/voices.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: generate
+        run: |
+          pip install edge-tts
+          python voices/gen.py 2>&1 | tee voices/build.log || true
+          edge-tts --list-voices 2>&1 | grep -i "it-IT\|ja-JP" > voices/voices_available.txt || true
+      - name: commit
+        if: always()
+        run: |
+          git config user.name "voices-bot"; git config user.email "bot@users.noreply.github.com"
+          git add voices
+          git commit -m "voci generate [skip ci]" || exit 0
+          git push

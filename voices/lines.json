@@ -1,0 +1,166 @@
+{
+ "it": {
+  "emanuele": {
+   "voice": "it-IT-DiegoNeural",
+   "rate": "-8%",
+   "pitch": "-6Hz",
+   "lines": {
+    "intro": [
+     "Cominciamo.",
+     "Prenditi pure il tuo tempo."
+    ],
+    "fight": [
+     "Vediamo.",
+     "Quando vuoi."
+    ],
+    "s1": [
+     "Tieni.",
+     "Un attimo."
+    ],
+    "s2": [
+     "Non muoverti.",
+     "Fermo lì."
+    ],
+    "gha": [
+     "Adesso."
+    ],
+    "cine": [
+     "Nove secondi."
+    ],
+    "combo": [
+     "Troppo lento.",
+     "Eri prevedibile."
+    ],
+    "win": [
+     "Era ovvio.",
+     "Chiuso."
+    ],
+    "quote": [
+     "Ho solo avuto più tempo di te."
+    ]
+   }
+  },
+  "daniele": {
+   "voice": "it-IT-GiuseppeMultilingualNeural",
+   "rate": "+12%",
+   "pitch": "+0Hz",
+   "lines": {
+    "intro": [
+     "Ti ho già letto.",
+     "So già dove colpirai."
+    ],
+    "fight": [
+     "Calcolato.",
+     "Parti pure."
+    ],
+    "s1": [
+     "Qui.",
+     "Preciso."
+    ],
+    "s2": [
+     "Ora, ora, ora!",
+     "Tieni il ritmo!"
+    ],
+    "gha": [
+     "Guardami."
+    ],
+    "cine": [
+     "Ora ora ora ora ora!"
+    ],
+    "combo": [
+     "Prevedibile.",
+     "Esattamente."
+    ],
+    "win": [
+     "Come previsto.",
+     "Zero errori."
+    ],
+    "quote": [
+     "Ogni colpo l'avevo già calcolato."
+    ]
+   }
+  },
+  "kevin": {
+   "voice": "it-IT-DiegoNeural",
+   "rate": "+0%",
+   "pitch": "+8Hz",
+   "lines": {
+    "intro": [
+     "Con permesso.",
+     "Un duello pulito, per favore."
+    ],
+    "fight": [
+     "In guardia."
+    ],
+    "s1": [
+     "Stoccata.",
+     "Toccato."
+    ],
+    "s2": [
+     "Resta a distanza.",
+     "Troppo vicino."
+    ],
+    "gha": [
+     "Danza delle lame."
+    ],
+    "cine": [
+     "Troppo tardi."
+    ],
+    "combo": [
+     "Distanza giusta.",
+     "Linea aperta."
+    ],
+    "win": [
+     "Pulito.",
+     "Dritto al punto."
+    ],
+    "quote": [
+     "Bastava la distanza giusta."
+    ]
+   }
+  },
+  "joker": {
+   "voice": "it-IT-GiuseppeMultilingualNeural",
+   "rate": "-10%",
+   "pitch": "-14Hz",
+   "lines": {
+    "intro": [
+     "Fate il vostro gioco.",
+     "Puntate pure."
+    ],
+    "fight": [
+     "Si gioca.",
+     "Giro di carte."
+    ],
+    "s1": [
+     "Pesca.",
+     "Carta alta."
+    ],
+    "s2": [
+     "Giro la ruota.",
+     "Rosso o nero?"
+    ],
+    "gha": [
+     "All in."
+    ],
+    "cine": [
+     "Rilancio."
+    ],
+    "combo": [
+     "Hai già perso.",
+     "Il banco non perde."
+    ],
+    "win": [
+     "Banco.",
+     "La casa incassa."
+    ],
+    "jackpot": [
+     "Jackpot!"
+    ],
+    "quote": [
+     "La casa vince sempre."
+    ]
+   }
+  }
+ }
+}
