@@ -126,6 +126,36 @@ const SFX={
 };
 const NETF={on:false,host:false,guest:false,live:false,mute:false,fq:[],sq:[],rin:{held:{},p:{}},myPick:-1,peerPick:-1,esc:0,last:null};
 const sfx=(n,a)=>{try{SFX[n]&&SFX[n](a);if(NETF.host&&NETF.live&&!NETF.mute)NETF.sq.push([n,a||null]);}catch(e){}};
+// ---- voicelines (speechSynthesis del browser + sottotitoli) ----
+const VL={
+ emanuele:{intro:['Cominciamo.','Prenditi pure il tuo tempo.'],fight:['Vediamo.','Quando vuoi.'],s1:['Tieni.','Un attimo.'],s2:['Non muoverti.','Fermo lì.'],gha:['Adesso.'],cine:['Nove secondi.'],combo:['Troppo lento.','Eri prevedibile.'],win:['Era ovvio.','Chiuso.']},
+ daniele:{intro:['Ti ho già letto.','So già dove colpirai.'],fight:['Calcolato.','Parti pure.'],s1:['Qui.','Preciso.'],s2:['Ora, ora, ora!','Tieni il ritmo!'],gha:['Guardami.'],cine:['Ora ora ora ora ora!'],combo:['Prevedibile.','Esattamente.'],win:['Come previsto.','Zero errori.']},
+ kevin:{intro:['Con permesso.','Un duello pulito, per favore.'],fight:['In guardia.'],s1:['Stoccata.','Toccato.'],s2:['Resta a distanza.','Troppo vicino.'],gha:['Danza delle lame.'],cine:['Troppo tardi.'],combo:['Distanza giusta.','Linea aperta.'],win:['Pulito.','Dritto al punto.']},
+ joker:{intro:['Fate il vostro gioco.','Puntate pure.'],fight:['Si gioca.','Giro di carte.'],s1:['Pesca.','Carta alta.'],s2:['Giro la ruota.','Rosso o nero?'],gha:['All in.'],cine:['Rilancio.'],combo:['Hai già perso.','Il banco non perde.'],win:['Banco.','La casa incassa.'],jackpot:['Jackpot!']}
+};
+const VP={emanuele:{p:.7,r:.88},daniele:{p:.95,r:1.14},kevin:{p:1.12,r:1.0},joker:{p:.55,r:.82}};
+const VO={v:[],cd:{}};
+function voLoad(){try{VO.v=speechSynthesis.getVoices().filter(v=>/^it/i.test(v.lang));}catch(e){}}
+try{voLoad();speechSynthesis.addEventListener('voiceschanged',voLoad);}catch(e){}
+function voSay(a){
+ try{
+  const ci=CHARS.findIndex(x=>x.id===a.c);if(ci<0||!a.s)return;const ch=CHARS[ci];
+  const show=()=>{G.sub={who:ch.name,s:a.s,col:ch.st.glow,until:performance.now()+Math.max(1700,a.s.length*85)};};
+  const ss=window.speechSynthesis;
+  if(a.lp&&ss&&(ss.speaking||ss.pending))return;
+  const go=()=>{show();if(!ss||typeof SpeechSynthesisUtterance==='undefined')return;
+   const u=new SpeechSynthesisUtterance(a.s),p=VP[a.c]||{p:1,r:1};u.lang='it-IT';
+   if(VO.v.length)u.voice=VO.v[ci%VO.v.length];u.pitch=p.p;u.rate=p.r;u.volume=1;
+   if(a.q){ss.speak(u);}else{ss.cancel();setTimeout(()=>{try{ss.speak(u);}catch(e){}},40);}};
+  a.d?setTimeout(go,a.d):go();
+ }catch(e){}
+}
+SFX.v=voSay;
+function voT(def,s,o){sfx('v',Object.assign({c:def.id,s},o||{}));}
+function vo(f,k,o){const d=f.def||f,arr=(VL[d.id]||{})[k];if(!arr||!arr.length)return;
+ if(o&&o.cd){const n=performance.now();if(n<(VO.cd[d.id+k]||0))return;VO.cd[d.id+k]=n+o.cd;}
+ voT(d,arr[(Math.random()*arr.length)|0],o);}
+
 // ---- audio continuo: drone del tempo fermo + pioggia ----
 let TSD=null,RAINN=null;
 function tsDrone(on){if(!AC||!MBUS)return;try{
@@ -240,7 +270,7 @@ function fxTimeStop(f,o){
 function fxRoulette(f,o){
  const r=Math.random();sfx('coin');
  if(r<.4){ // jackpot: onda d'urto
-  fxTxt(f.x,f.y-200,'JACKPOT','#ffd24a',40,90);G.shake=12;fxRing(f.x,f.y-90,'#ffd24a',60);
+  fxTxt(f.x,f.y-200,'JACKPOT','#ffd24a',40,90);vo(f,'jackpot');G.shake=12;fxRing(f.x,f.y-90,'#ffd24a',60);
   if(Math.abs(o.x-f.x)<300&&o.inv<=0&&o.state!=='cine'){
    if(o.frozen>0){o.hp-=110;}
    else{const blocked=o.guarding&&o.y>=GROUND;
@@ -343,13 +373,13 @@ function pay(f,c){if(!c)return;if(c.sg)f.sg-=c.sg;if(c.heat)f.heat-=c.heat;}
 function trySpecial(f,o,inp){
  const m=inp.held.down?f.def.S2:f.def.S1;
  if(!canPay(f,m.cost)){fxTxt(f.x,f.y-190,m.cost.heat?'HEAT INSUFFICIENTE':'STAND SCARICO','#9fb2ff',20,40);return false;}
- pay(f,m.cost);startAtk(f,m);if(m.stand){sfx('stand');}return true;
+ pay(f,m.cost);startAtk(f,m);vo(f,inp.held.down?'s2':'s1',{cd:2500});if(m.stand){sfx('stand');}return true;
 }
 function tryGHA(f,o,lvl){
  if(f.heat<50)return false;
  const g=f.def.G;f.heat-=50;
  const m={kind:'gha',type:'point',stand:true,name:g.name,style:g.style,total:g.total*f.def.K.dmg,dur:g.dur,y:-100,h:90,reach:g.reach,st:16,ac:5,rc:34,noBlock:true};
- startAtk(f,m);f.inv=m.st+m.ac;G.banner={t:0,txt:g.name,who:f,pre:true};sfx('gha');return true;
+ startAtk(f,m);f.inv=m.st+m.ac;G.banner={t:0,txt:g.name,who:f,pre:true};sfx('gha');vo(f,'gha');return true;
 }
 function toggleStand(f){
  if(f.standOn){f.standOn=false;sfx('standoff');}
@@ -364,7 +394,7 @@ function launch(d,dir,vx,vy){
 function koFighter(d,att){
  if(G.scene==='ko')return;
  d.hp=0;d.state='ko';d.atk=null;d.vx=att.face*9;d.vy=-10;d.y=Math.min(d.y,GROUND-1);d.lie=0;
- G.scene='ko';G.sceneT=0;G.koWho=d;G.msg='K.O.';G.hitstop=16;G.shake=14;G.flash=10;sfx('ko');
+ G.scene='ko';G.sceneT=0;G.koWho=d;G.msg='K.O.';G.hitstop=16;G.shake=14;G.flash=10;sfx('ko');if(G.wins[att.side]<1)vo(att,'win',{d:1100});
  G.roundWinner=att.side;G.cine=null;
 }
 function hit(att,def,m,final,dir){
@@ -390,7 +420,7 @@ function hit(att,def,m,final,dir){
   return true;
  }
  def.hp-=dmg;att.heat=Math.min(100,att.heat+(dmg*.13+(m.heat||0)*.2)*att.def.K.heat);def.heat=Math.min(100,def.heat+dmg*.07*def.def.K.heat);
- att.combo++;att.comboDmg+=dmg;
+ att.combo++;att.comboDmg+=dmg;if(att.combo===5)vo(att,'combo',{lp:1,cd:9000});
  if(def.standOn){def.sg-=dmg*.14;if(def.sg<=0&&def.hp>0)standBreak(def);}
  const wasAir=def.state==='knock'&&def.y<GROUND-2;
  if(def.hp<=0){koFighter(def,att);}
@@ -543,7 +573,7 @@ function startCine(f,o,m){
   if(win){const n=6,big=130,each=(T-big)/n;for(let i=0;i<n;i++)hits.push({t:104+i*10,d:each});hits.push({t:176,d:big,final:true});}
   else{hits.push({t:110,d:50});hits.push({t:150,d:80,final:true});}}
  G.cine={a:f,d:o,m,t:0,dur:m.dur,hits,win,slashes:[],tp:false};
- G.banner={t:0,txt:m.name,who:f};G.hitstop=0;G.flash=10;G.shake=6;sfx('gha');
+ G.banner={t:0,txt:m.name,who:f};G.hitstop=0;G.flash=10;G.shake=6;sfx('gha');vo(f,'cine');
  f.combo++;
 }
 function cineStep(){
@@ -618,6 +648,7 @@ function startMatch(){
 function startRound(){
  const d0=CHARS[G.p1],d1=CHARS[G.p2];
  G.f=[newFighter(d0,0),newFighter(d1,1)];_prevH=[0,0];_thT=700;
+ try{speechSynthesis.cancel();}catch(e){}G.sub=null;
  G.proj=[];G.fx=[];G.cine=null;G.banner=null;G.hitstop=0;G.timer=60*60;G.scene='intro';G.sceneT=0;G.msg=null;G.koWho=null;G.paused=false;G.hint=360;G.roundWinner=-1;
 }
 function endRound(why){
@@ -630,7 +661,7 @@ function endRound(why){
 function afterKo(){
  const w=G.roundWinner;
  if(w>=0)G.wins[w]++;
- if(G.wins[0]>=2||G.wins[1]>=2){G.scene='result';G.rsel=0;G.winner=G.wins[0]>=2?0:1;sfx('win');return;}
+ if(G.wins[0]>=2||G.wins[1]>=2){G.scene='result';G.rsel=0;G.winner=G.wins[0]>=2?0:1;sfx('win');{const wd=CHARS[G.winner?G.p2:G.p1];voT(wd,wd.quote,{d:900});}return;}
  G.round++;startRound();
 }
 function simStep(){
@@ -653,6 +684,8 @@ function matchUpdate(){
  if(G.scene==='intro'){
   for(const f of G.f)f.t++;
   if(G.sceneT===2)sfx('round');if(G.sceneT===80)sfx('fight');
+  if(G.round===1){if(G.sceneT===22)vo(G.f[0],'intro',{q:1});if(G.sceneT===56)vo(G.f[1],'intro',{q:1});}
+  if(G.sceneT===92)vo(G.f[Math.random()<.5?0:1],'fight',{q:1});
   if(G.sceneT>=150){G.scene='fight';G.sceneT=0;}
   return;
  }
@@ -1198,6 +1231,7 @@ function drawHUD(){
  ctx.fillStyle='rgba(8,5,18,.85)';ctx.beginPath();ctx.arc(W/2,44,32,0,7);ctx.fill();ctx.strokeStyle='#ffd678';ctx.lineWidth=3;ctx.stroke();
  txt(String(Math.max(0,Math.ceil(G.timer/60))),W/2,60,44,'#fff','center');
  if(G.hint>0&&G.scene==='fight'){ctx.globalAlpha=clamp(G.hint/60,0,1);const t1=G.mode==='cpu'?'WASD muovi · F leggero · G pesante · H speciale (S+H: speciale 2) · R stand · T Heat · V scatto · Esc pausa':'P1: WASD · F G H · R T V     P2: frecce · , . / · ; \' · Shift     Esc pausa';txt(t1,W/2,H-64,16,'#ffe9b0','center',4);ctx.globalAlpha=1;}
+ const sb=G.sub;if(sb&&performance.now()<sb.until&&G.scene!=='result'){ctx.save();ctx.globalAlpha=clamp((sb.until-performance.now())/300,0,1);txt(sb.who,W/2,108,15,sb.col,'center',4);txt('“'+sb.s+'”',W/2,134,25,'#fff','center',5);ctx.restore();}
 }
 function drawBanner(){
  const b=G.banner;if(!b)return;
@@ -1686,7 +1720,7 @@ function frame(now){
  while(acc>=1000/60){acc-=1000/60;update();}
  render();requestAnimationFrame(frame);
 }
-window.__sb={SETS,SETOF,NETF,LOB,netHost,netJoin,netLeave,TR:()=>TR,fxTimeStop,sfx,SFX,fxDust,tsd:()=>!!TSD,rain:()=>!!RAINN,mst:()=>[!!AC&&AC.state,!!musBuf,!!musSrc,musGain?+musGain.gain.value.toFixed(2):null],G,update,render,CHARS,startMatch,keys,MUS,pressedQ:()=>pressedQ};
+window.__sb={vo,voT,VL,SETS,SETOF,NETF,LOB,netHost,netJoin,netLeave,TR:()=>TR,fxTimeStop,sfx,SFX,fxDust,tsd:()=>!!TSD,rain:()=>!!RAINN,mst:()=>[!!AC&&AC.state,!!musBuf,!!musSrc,musGain?+musGain.gain.value.toFixed(2):null],G,update,render,CHARS,startMatch,keys,MUS,pressedQ:()=>pressedQ};
 requestAnimationFrame(frame);
 })();
 </script>
