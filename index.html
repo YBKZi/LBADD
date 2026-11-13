@@ -290,7 +290,7 @@ const CHARS=[
 ];
 CHARS[0].S2=CHARS[0].S1;
 // statistiche -> gioco (B = valore di riferimento)
-const HCM={emanuele:185,daniele:170,kevin:175,joker:195},HPX={emanuele:179,daniele:192,kevin:192,joker:192};
+const HCM={emanuele:185,daniele:175,kevin:180,joker:190},HPX={emanuele:179,daniele:192,kevin:192,joker:192};
 CHARS.forEach(d=>{d.hs=(HCM[d.id]/185*179)/HPX[d.id];const h=d.hex,r=i=>h[i]-4;
  d.K={dmg:1+r(0)*.08,reach:1+r(2)*.08,st:1-r(4)*.06,heat:1+r(5)*.12,guard:1-r(3)*.08};
  d.speed=3.6*(1+r(1)*.08);d.hp=Math.round(1000*(1+r(3)*.06));});
