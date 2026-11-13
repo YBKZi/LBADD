@@ -186,7 +186,7 @@ let _tsT=0,_prevH=[0,0],_thT=700;
 function sfxTick(){NETF.mute=true;try{sfxTick0();}finally{NETF.mute=false;}}
 function sfxTick0(){try{
  const inM=(G.scene==='intro'||G.scene==='fight'||G.scene==='ko')&&G.f&&G.f.length;
- rainSet(!!inM&&!G.paused);
+ rainSet(!!inM&&!G.paused&&G.stageCur!==1);
  let fz=false;
  if(inM)fz=G.f.some(f=>f.frozen>0)||!!(G.cine&&G.cine.m.style==='timestop'&&G.cine.t>3&&G.cine.t<190);
  fz=fz&&!G.paused;tsDrone(fz);
@@ -194,7 +194,7 @@ function sfxTick0(){try{
  G.tsT=_tsT;
  if(inM&&G.scene==='fight'){
   G.f.forEach((f,i)=>{if(_prevH[i]<50&&f.heat>=50){sfx('heatok');fxRing(f.x,f.y-100,'#ffd24a',55);fxTxt(f.x,f.y-195,'HEAT PRONTO','#ffd24a',20,50);}_prevH[i]=f.heat;});
-  if(!G.paused&&!NETF.guest&&--_thT<=0){_thT=Math.floor(rv(900,1800));G.flash=Math.max(G.flash,9);setTimeout(()=>sfx('thunder'),200);}
+  if(!G.paused&&!NETF.guest&&G.stageCur!==1&&--_thT<=0){_thT=Math.floor(rv(900,1800));G.flash=Math.max(G.flash,9);setTimeout(()=>sfx('thunder'),200);}
  }else _prevH=[0,0];
 }catch(e){}}
 /* ---- musica del menu (loop) ---- */
