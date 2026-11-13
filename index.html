@@ -1858,6 +1858,7 @@ function pollPads(){
    if(inMatch){want[4]=b(1);want[5]=b(3);want[6]=b(2);want[7]=b(6);want[8]=b(5);want[9]=b(7);}   // R1 = Heat  // nei menu i tasti d'attacco non contano
    if(inMatch){ex.Escape=b(9);ex.KeyQ=G.paused&&b(3);if(G.play==='training'){ex.Digit1=b(8);ex.Digit0=b(10)||b(11);}}
    else{ex.Escape=b(1)||b(3);ex.Enter=b(9)||b(0);ex.KeyQ=b(4)||b(6);ex.KeyE=b(5)||b(7);}
+    ex.KeyM=b(11);
   }
   for(let i=0;i<11;i++){
    const k=PADK[s][i],on=!!want[i];
@@ -1865,7 +1866,7 @@ function pollPads(){
    else if(!on&&padPrev[s][i]){keys[k]=false;}
    padPrev[s][i]=on;
   }
-  for(const k of ['Escape','Enter','KeyQ','KeyE','Digit1','Digit0']){
+  for(const k of ['Escape','Enter','KeyQ','KeyE','KeyM','Digit1','Digit0']){
    const on=!!ex[k];
    if(on&&!padPrevX[s][k])pressedQ[k]=true;
    padPrevX[s][k]=on;
