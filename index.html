@@ -514,7 +514,7 @@ function stepFighter(f,o,inp){
   if((f.state==='knock'||f.state==='ko')&&f.vy>3&&f.lie===0){f.vy=-f.vy*.35;f.y=GROUND-1;f.vx*=.6;if(f.state==='knock')f.lie=1;sfx('thud');fxDust(f.x,GROUND,9);G.shake=Math.max(G.shake,4);}
   else{f.y=GROUND;f.vy=0;if(f.state==='jump'){f.state='idle';sfx('land');fxDust(f.x,GROUND,6);}}
  }
- f.x=clamp(f.x,36,W-36);
+ {const mg=(f.state==='knock'||f.state==='ko'||f.state==='getup')?100:58;f.x=clamp(f.x,mg,W-mg);}
  if(f.state==='dash'||f.state==='atk'){f.trail.push({x:f.x,y:f.y});if(f.trail.length>5)f.trail.shift();}else if(f.trail.length)f.trail.shift();
 }
 function separate(a,b){
@@ -522,7 +522,7 @@ function separate(a,b){
  const dx=b.x-a.x,min=44;
  if(Math.abs(dx)<min&&a.y>=GROUND-2&&b.y>=GROUND-2){
   const p=(min-Math.abs(dx))/2,s=dx>=0?1:-1;
-  a.x-=s*p;b.x+=s*p;a.x=clamp(a.x,36,W-36);b.x=clamp(b.x,36,W-36);
+  a.x-=s*p;b.x+=s*p;a.x=clamp(a.x,58,W-58);b.x=clamp(b.x,58,W-58);
  }
 }
 
@@ -1273,9 +1273,11 @@ function render0(){
   }
   if(!G.cine){
    const [fa,fb]=G.f,mid=(fa.x+fb.x)/2,dist=Math.abs(fa.x-fb.x);
-   const tz=1+.15*clamp(1-dist/540,0,1)+(sc==='ko'?.1:0);
-   G.cz=(G.cz||1)+(tz-(G.cz||1))*.07;G.cxm=(G.cxm==null?mid:G.cxm)+(mid-G.cxm)*.1;
-   const z=G.cz;ctx.translate(clamp(W/2-G.cxm*z,W-W*z,0),clamp((GROUND-60)*(1-z),H-H*z,0));ctx.scale(z,z);
+   const tz=Math.min(1+.15*clamp(1-dist/540,0,1)+(sc==='ko'?.1:0),Math.max(1,W/(dist+170)));
+   G.cz=(G.cz||1)+(tz-(G.cz||1))*.07;G.cxm=(G.cxm==null?mid:G.cxm)+(mid-(G.cxm==null?mid:G.cxm))*.16;
+   const z=G.cz,ty0=clamp((GROUND-60)*(1-z),H-H*z,0),topY=Math.min(fa.y,fb.y)-185,cap=Math.max(0,H-95-(ty0+z*Math.max(fa.y,fb.y))),want=Math.min(cap,clamp((20-(ty0+z*topY))/1,0,300));G.cdy=(G.cdy||0)+(want-(G.cdy||0))*.18;
+   const mnX=Math.min(fa.x,fb.x),mxX=Math.max(fa.x,fb.x),lo=Math.max(W-W*z,-(mnX-80)*z),hi=Math.min(0,W-(mxX+80)*z),wx=W/2-G.cxm*z;
+   ctx.translate(lo<=hi?clamp(wx,lo,hi):clamp(wx,W-W*z,0),ty0+G.cdy);ctx.scale(z,z);
   }
   drawWorld();
   if(G.cine)drawCineOverlay();
