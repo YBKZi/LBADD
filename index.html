@@ -1756,7 +1756,7 @@ function drawStagePick(){
  if(!lock){HOT.push({x,y,w:36,h,fn:()=>stageStep(-1)});HOT.push({x:x+w-36,y,w:36,h,fn:()=>stageStep(1)});
   txt('◀',x+18,y+38,24,'#ffd678','center',3);txt('▶',x+w-18,y+38,24,'#ffd678','center',3);}
 }
-function drawSelect(){drawSelect0();if(NETF.on){txt(NETF.myPick>=0?(NETF.peerPick>=0?'PRONTI...':'IN ATTESA DELL\'AVVERSARIO...'):(NETF.host?'SCEGLI IL TUO PERSONAGGIO · Q/E LOCATION':'SCEGLI IL TUO PERSONAGGIO'),W/2,526,20,'#ffe9a0','center',4);}}
+function drawSelect(){drawSelect0();if(NETF.on){txt(NETF.myPick>=0?(NETF.peerPick>=0?'PRONTI...':'IN ATTESA DELL\'AVVERSARIO...'):(NETF.host?'SCEGLI IL TUO PERSONAGGIO · Q/E · L1/R1 LOCATION':'SCEGLI IL TUO PERSONAGGIO'),W/2,526,20,'#ffe9a0','center',4);}}
 function drawSelect0(){
  HOT=[];bgMenu();
  const p0=G.phase===0,c0='#7fe0ff',c1='#ff8a8a';
@@ -1780,7 +1780,7 @@ function drawSelect0(){
   if(on&&pv===i){const pc=NETF.host?c1:c0;ctx.save();ctx.globalAlpha=NETF.peerPick>=0?1:(.55+.35*Math.sin(G.t*.2));ctx.strokeStyle=pc;ctx.lineWidth=3;ctx.strokeRect(gx+6,gy+6,tw-12,th-12);ctx.restore();txt(NETF.host?'2P':'1P',gx+10,gy+28,22,pc,'left',3);}
  }
  drawStagePick();
- if(!NETF.on)txt(TOUCH?'Tocca un personaggio per sceglierlo · ◀ ▶ cambia location':'Frecce / WASD scegli · Invio conferma · Q/E location · Esc indietro',W/2,527,18,'#c9b88a','center',3);
+ if(!NETF.on)txt(TOUCH?'Tocca un personaggio per sceglierlo · ◀ ▶ cambia location':'Frecce / WASD scegli · Invio conferma · Q/E (L1/R1) location · Esc indietro',W/2,527,18,'#c9b88a','center',3);
 }
 function drawVS(){
  HOT=[{x:0,y:0,w:W,h:H,fn:()=>startMatch()}];bgMenu();
@@ -1857,7 +1857,7 @@ function pollPads(){
    want[2]=inMatch?b(0):(ay<-dz||b(12));          // in partita: X salta; nei menu: su
    if(inMatch){want[4]=b(1);want[5]=b(3);want[6]=b(2);want[7]=b(6);want[8]=b(5);want[9]=b(7);}   // R1 = Heat  // nei menu i tasti d'attacco non contano
    if(inMatch){ex.Escape=b(9);ex.KeyQ=G.paused&&b(3);if(G.play==='training'){ex.Digit1=b(8);ex.Digit0=b(10)||b(11);}}
-   else{ex.Escape=b(1)||b(3);ex.Enter=b(9)||b(0);}
+   else{ex.Escape=b(1)||b(3);ex.Enter=b(9)||b(0);ex.KeyQ=b(4)||b(6);ex.KeyE=b(5)||b(7);}
   }
   for(let i=0;i<11;i++){
    const k=PADK[s][i],on=!!want[i];
@@ -1865,7 +1865,7 @@ function pollPads(){
    else if(!on&&padPrev[s][i]){keys[k]=false;}
    padPrev[s][i]=on;
   }
-  for(const k of ['Escape','Enter','KeyQ','Digit1','Digit0']){
+  for(const k of ['Escape','Enter','KeyQ','KeyE','Digit1','Digit0']){
    const on=!!ex[k];
    if(on&&!padPrevX[s][k])pressedQ[k]=true;
    padPrevX[s][k]=on;
