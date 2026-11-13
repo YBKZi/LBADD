@@ -1367,7 +1367,7 @@ function drawTitle(){
  logo('STAND BATTLE',W/2,200,140);
  txt('ARCADE EDITION',W/2,236,26,'#7fe0ff','center',4);
  if(G.t%60<38)txt('PREMI UN TASTO QUALSIASI',W/2,498,32,'#fff','center',5);
- txt('CREDIT '+String(G.credit).padStart(2,'0'),W-30,H-18,22,'#ffd678','right',4);padTag();
+ padTag();
  HOT.push({x:0,y:0,w:W,h:H,fn:()=>{G.credit=Math.max(1,G.credit);G.scene='menu';sfx('ok');}});
 }
 const MODES=['cpu','2p','cc'];
@@ -1391,7 +1391,7 @@ function drawMenu(){
  btn(300,253,360,56,'CPU: '+dn[G.diff],G.menuSel===1,()=>{G.menuSel=1;G.diff=(G.diff+1)%3;sfx('ui');});
  btn(300,321,360,56,'COMBATTI',G.menuSel===2,()=>{G.menuSel=2;toSelect();});
  btn(300,389,360,56,'ONLINE CON AMICI',G.menuSel===3,()=>{G.menuSel=3;goLobby();});
- txt('Su/Giù scegli · Invio conferma · Esc indietro · M musica on/off',W/2,490,22,'#c9b88a','center',3);txt('CREDIT '+String(Math.max(1,G.credit)).padStart(2,'0'),W-30,H-18,22,'#ffd678','right',4);padTag();
+ txt('Su/Giù scegli · Invio conferma · Esc indietro · M musica on/off',W/2,490,22,'#c9b88a','center',3);padTag();
 }
 function selectUpdate(){
  if(anyEdge('ArrowLeft','KeyA'))G.cur=(G.cur+3)%4,sfx('ui');
