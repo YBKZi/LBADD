@@ -416,6 +416,20 @@ function toggleStand(f){
  if(f.standOn){f.standOn=false;sfx('standoff');}
  else if(f.sg>=20){f.standOn=true;sfx('stand');fxRing(f.x-f.face*40,f.y-90,f.def.st.glow,40);}
 }
+const ESC_IDS={emanuele:1,daniele:1};
+function canEscape(f){return !!ESC_IDS[f.def.id]&&G.scene==='fight'&&!G.cine&&f.sg>=99.5&&!f.standOn&&f.frozen===0&&(f.state==='hit'||f.state==='stun'||f.state==='block'||f.state==='knock');}
+function tryEscape(f,o){
+ if(!canEscape(f))return false;
+ const ox=f.x,oy=f.y;
+ f.sg=0;f.state='idle';f.atk=null;f.vx=0;f.vy=0;f.y=GROUND;f.guarding=false;f.buf=null;f.juggle=0;f.lie=0;f.st=0;f.chain=0;
+ const dir=f.x<=o.x?1:-1;let nx=clamp(o.x+dir*110,60,W-60);if(Math.abs(nx-o.x)<70)nx=clamp(o.x-dir*110,60,W-60);
+ f.x=nx;f.face=o.x>=f.x?1:-1;f.inv=44;f.combo=0;f.comboDmg=0;o.combo=0;o.comboDmg=0;
+ o.frozen=Math.max(o.frozen,36);o.pend=null;
+ G.flash=12;G.invert=8;G.shake=Math.max(G.shake,4);sfx('tsblink');
+ for(let i=0;i<4;i++)fxSlash(ox+rnd(-20,20),oy-rnd(30,150),rnd(-.4,.4),rnd(60,110),'#d6c8ff');
+ fxRing(ox,oy-100,'#b9a0ff',50);fxRing(f.x,f.y-100,'#b9a0ff',40);fxTxt(f.x,f.y-190,'FUGA TEMPORALE','#d6c8ff',28,70);
+ return true;
+}
 function standBreak(f){
  f.standOn=false;f.sg=0;f.state='stun';f.st=75;f.atk=null;f.vx=0;fxTxt(f.x,f.y-190,'STAND CRASH','#7fb6ff',28,70);fxRing(f.x,f.y-100,'#7fb6ff',60);sfx('heavy');G.shake=8;
 }
@@ -555,6 +569,8 @@ function stepFighter(f,o,inp){
  f.sg=clamp(f.sg+(f.standOn?-.085:.15),0,100);
  if(f.standOn&&f.sg<=0)standBreak(f);
  if(f.state!=='block')f.guard=Math.min(100,f.guard+.12);
+ if(f.escQ>0)f.escQ--;
+ if(inp&&(inp.p.dash||f.escQ>0)&&tryEscape(f,o)){f.escQ=0;return;}
  const o2=G.f[1-f.side];
  if(f.combo>0&&o2.state!=='hit'&&o2.state!=='knock'&&o2.state!=='block'&&o2.state!=='cine'&&o2.frozen===0&&o2.state!=='stun'){f.combo=0;f.comboDmg=0;}
  switch(f.state){
@@ -642,6 +658,7 @@ function aiInput(f,o){
  const inp={held:{left:0,right:0,up:0,down:0,light:0,heavy:0,spec:0,stand:0,gha:0,dash:0},p:{left:0,right:0,up:0,down:0,light:0,heavy:0,spec:0,stand:0,gha:0,dash:0}};
  const A=f.ai,lvl=[.45,.7,.95][G.diff],d=o.x-f.x,ad=Math.abs(d),dir=d>0?1:-1;
  if(G.scene!=='fight')return inp;
+ if(canEscape(f)&&Math.random()<.05*lvl){inp.p.dash=1;return inp;}
  if(A.guard>0){A.guard--;inp.held.down=1;return inp;}
  if((o.state==='atk')&&ad<170&&Math.random()<lvl*.1){A.guard=14+Math.floor(Math.random()*14);return inp;}
  A.t--;
@@ -702,7 +719,7 @@ function afterKo(){
 function simStep(){
  const [a,b]=G.f;
  if(G.cine){cineStep();stepFx();if(G.banner)G.banner.t++;return;}
- if(G.hitstop>0){G.hitstop--;stepFx();return;}
+ if(G.hitstop>0){G.hitstop--;stepFx();if(G.mode!=='cc'&&readInput(0).p.dash)a.escQ=12;if(G.mode==='2p'&&!NETF.on&&readInput(1).p.dash)b.escQ=12;return;}
  const i0=G.mode==='cc'?aiInput(a,b):readInput(0),i1=NETF.host?takeRin():G.play==='training'?trInput(b,a):(G.mode!=='2p'?aiInput(b,a):readInput(1));
  if(G.t&1){stepFighter(b,a,i1);stepFighter(a,b,i0);}else{stepFighter(a,b,i0);stepFighter(b,a,i1);}
  separate(a,b);stepProj();stepFx();
@@ -1345,6 +1362,7 @@ function drawHUD(){
   const sr=f.sg/100;ctx.save();para(ctx,gx,gy,gw,12,sk2);ctx.clip();ctx.fillStyle=f.standOn?'#7fe0ff':'#3a8fb8';ctx.fillRect(left?gx:gx+gw*(1-sr),gy,gw*sr+10,12);ctx.restore();
   ctx.strokeStyle='#7fe0ff';ctx.lineWidth=3;para(ctx,gx,gy,gw,12,sk2);ctx.stroke();
   txt(f.standOn?'STAND ON':'STAND',left?gx+gw+16:gx-16,gy+12,14,'#7fe0ff',left?'left':'right',3);
+  if(ESC_IDS[f.def.id]&&f.sg>=99.5&&!f.standOn)txt('FUGA TEMPORALE: SCATTO',gx+gw/2,gy-5,13,'#d6c8ff','center',3);
   const hy=gy+20,hr=f.heat/100,kw=gw/2-3;
   for(let k=0;k<2;k++){
    const kx=left?gx+k*(kw+6):gx+gw-kw-k*(kw+6),fk=clamp(hr*2-k,0,1);
@@ -1471,9 +1489,9 @@ function render0(){
   if(sc==='ko'){const k=ease(Math.min(1,G.sceneT/12));ctx.save();ctx.translate(W/2,H/2);ctx.scale(.6+.4*k,.6+.4*k);txt(G.msg||'K.O.',0,30,G.msg&&G.msg.length>5?100:170,'#fff','center',10);ctx.restore();
    if(G.sceneT>70&&G.roundWinner>=0){{const wf=G.f[G.roundWinner];txt(wf.def.name+' VINCE IL ROUND',W/2,H/2+90,34,'#ffd678','center',5);if(wf.hp>=wf.def.hp)txt('PERFECT',W/2,H/2+150,56,'#ff6a5a','center',7);}}}
   if(G.paused){HOT=[];tx.save();tx.setTransform(1,0,0,1,0,0);tx.clearRect(0,0,W,H);tx.restore();ctx.fillStyle='rgba(5,3,12,.84)';ctx.fillRect(0,0,W,H);txt('PAUSA',W/2,130,80,'#ffd678','center',6);
-   const L=['P1:  WASD muovi/salta/guardia   F leggero   G pesante   H speciale 1   S+H speciale 2   R stand   T Heat   V scatto','P2:  frecce muovi/salta/guardia   ,  leggero   .  pesante   /  speciale 1   ↓+/  speciale 2   ;  stand   \'  Heat   Shift scatto','Catena: leggero × 3 · leggero → pesante / speciale · Heat costa mezza barra','Stand ON: attacchi più forti e lunghi, ma consuma la barra stand. Guardia: tieni premuto giù/S.','JOYSTICK:  croce/stick solo sinistra/destra · X salta · Cerchio leggero · Triangolo pesante · Quadrato stand (giù+Quadrato speciale 2) · L2 stand · L1 guardia · R1 Heat · R2 scatto','Esc / P / Options riprendi    Q / Triangolo esci al menu'];
-   L.forEach((s,i)=>txt(s,W/2,184+i*30,18,'#ffe9b0','center',3,920));
-   G.f.forEach((f,i)=>{const d=f.def;txt(d.name.split(' ')[0]+':   H  '+d.S1.name+(d.S2!==d.S1?'   ·   S+H  '+d.S2.name:'')+'   ·   T  '+d.G.name,W/2,370+i*28,18,i?'#ff9a9a':'#9fe6ff','center',3,920);});
+   const L=['P1:  WASD muovi/salta/guardia   F leggero   G pesante   H speciale 1   S+H speciale 2   R stand   T Heat   V scatto','P2:  frecce muovi/salta/guardia   ,  leggero   .  pesante   /  speciale 1   ↓+/  speciale 2   ;  stand   \'  Heat   Shift scatto','Catena: leggero × 3 · leggero → pesante / speciale · Heat costa mezza barra','Stand ON: attacchi più forti e lunghi, ma consuma la barra stand. Guardia: tieni premuto giù/S.','Emanuele e Daniele: se sei colpito o in guardia con la barra stand PIENA e spenta, SCATTO = FUGA TEMPORALE (ti teletrasporti dietro, tempo fermo un attimo, stand a zero)','JOYSTICK:  croce/stick solo sinistra/destra · X salta · Cerchio leggero · Triangolo pesante · Quadrato stand (giù+Quadrato speciale 2) · L2 stand · L1 guardia · R1 Heat · R2 scatto','Esc / P / Options riprendi    Q / Triangolo esci al menu'];
+   L.forEach((s,i)=>txt(s,W/2,184+i*27,18,'#ffe9b0','center',3,920));
+   G.f.forEach((f,i)=>{const d=f.def;txt(d.name.split(' ')[0]+':   H  '+d.S1.name+(d.S2!==d.S1?'   ·   S+H  '+d.S2.name:'')+'   ·   T  '+d.G.name,W/2,380+i*26,18,i?'#ff9a9a':'#9fe6ff','center',3,920);});
    btn(280,436,190,50,'RIPRENDI',true,()=>{G.paused=false;});btn(490,436,190,50,'MENU',false,toMenu);}
   if(sc==='result')drawResult();
  }
@@ -1504,7 +1522,7 @@ const MODES=['cpu','2p','cc'];
 function NEXTMODE(m,d){return MODES[(MODES.indexOf(m)+d+3)%3];}
 /* ---------------- OPZIONI ---------------- */
 const MENU_IT=[
- {l:()=>'ARCADE',d:'Batti tutti gli altri personaggi, uno dopo l\'altro, fino al boss',go:()=>{G.play='arcade';G.mode='cpu';toSelect();}},
+ {l:()=>'SOPRAVVIVENZA',d:'Batti tutti gli altri personaggi, uno dopo l\'altro, fino al boss',go:()=>{G.play='arcade';G.mode='cpu';toSelect();}},
  {l:()=>'VERSUS · '+({cpu:'1P CONTRO CPU','2p':'2 GIOCATORI',cc:'CPU CONTRO CPU'})[G.vsMode],d:'◀ ▶ cambia modalità · un match singolo, si sceglie anche la location',lr:d=>{G.vsMode=NEXTMODE(G.vsMode,d);sfx('ui');},go:()=>{G.play='vs';G.mode=G.vsMode;toSelect();}},
  {l:()=>'ALLENAMENTO',d:'Manichino regolabile, vita infinita, danni e combo a schermo',go:()=>{G.play='training';G.mode='cpu';toSelect();}},
  {l:()=>'ONLINE CON AMICI',d:'Crea una stanza e manda il codice a un amico',go:()=>{G.play='vs';goLobby();}},
@@ -1635,7 +1653,7 @@ function arcLines(){const a=CHARS[G.p1].id,b=CHARS[G.arc.opp[G.arc.idx]].id;retu
 function fmtT(fr){const s=Math.round(fr/60);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function drawArcMap(){
  HOT=[{x:0,y:0,w:W,h:H,fn:()=>{G.scene='dialog';G.sceneT=0;G.dlg={i:0,t:0};}}];bgMenu();
- const A=G.arc,pc=CHARS[G.p1];logo('ARCADE',W/2,70,64);
+ const A=G.arc,pc=CHARS[G.p1];logo('SOPRAVVIVENZA',W/2,70,56);
  ctx.fillStyle='rgba(12,8,26,.9)';ctx.fillRect(40,110,250,300);ctx.strokeStyle='#7fe0ff';ctx.lineWidth=3;ctx.strokeRect(40,110,250,300);
  ctx.save();ctx.beginPath();ctx.rect(40,110,250,230);ctx.clip();drawFace(ctx,pc,165,225,240,230,false);ctx.restore();
  txt(pc.name,165,372,22,'#fff','center',4,236);txt('TU',165,398,18,'#7fe0ff','center',3);
@@ -1672,7 +1690,7 @@ function drawArcEnd(){
  ctx.save();ctx.translate(W/2,290);ctx.globalAlpha=.16;ctx.fillStyle=pc.look.accent;
  for(let i=0;i<16;i++){const a=i*Math.PI/8+G.t*.005;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*900,Math.sin(a)*900);ctx.lineTo(Math.cos(a+.12)*900,Math.sin(a+.12)*900);ctx.closePath();ctx.fill();}
  ctx.restore();
- logo('ARCADE COMPLETATO',W/2,96,76);
+ logo('SOPRAVVIVENZA COMPLETATA',W/2,96,56);
  ctx.save();ctx.shadowColor=pc.look.accent;ctx.shadowBlur=30;drawFace(ctx,pc,W/2,250,380,190,false,false);ctx.restore();
  txt(pc.name,W/2,372,36,'#fff','center',5);
  const st=[['TEMPO',fmtT(A.frames)+(A.rec?'  NUOVO RECORD':'')],['RECORD',A.best?fmtT(A.best):'-'],['DANNI INFLITTI',String(Math.round(A.dmg))],['COMBO MAX',String(A.maxc)],['PERFECT',String(A.perf)],['CONTINUE',String(A.cont)]];
@@ -1760,7 +1778,7 @@ function drawSelect(){drawSelect0();if(NETF.on){txt(NETF.myPick>=0?(NETF.peerPic
 function drawSelect0(){
  HOT=[];bgMenu();
  const p0=G.phase===0,c0='#7fe0ff',c1='#ff8a8a';
- txt(G.play==='arcade'?'ARCADE: SCEGLI IL TUO PERSONAGGIO':G.play==='training'?(p0?'ALLENAMENTO: SCEGLI':'SCEGLI IL MANICHINO'):G.mode==='cc'?(p0?'CPU 1: SCEGLI':'CPU 2: SCEGLI'):p0?'PLAYER 1: SCEGLI':(G.mode==='cpu'?'AVVERSARIO CPU: SCEGLI':'PLAYER 2: SCEGLI'),W/2,48,44,p0?c0:c1,'center',6);
+ txt(G.play==='arcade'?'SOPRAVVIVENZA: SCEGLI IL TUO PERSONAGGIO':G.play==='training'?(p0?'ALLENAMENTO: SCEGLI':'SCEGLI IL MANICHINO'):G.mode==='cc'?(p0?'CPU 1: SCEGLI':'CPU 2: SCEGLI'):p0?'PLAYER 1: SCEGLI':(G.mode==='cpu'?'AVVERSARIO CPU: SCEGLI':'PLAYER 2: SCEGLI'),W/2,48,44,p0?c0:c1,'center',6);
  const on=NETF.on;let L,R,pv=-1;
  if(on){pv=NETF.peerPick>=0?NETF.peerPick:NETF.peerCur;const mi=NETF.myPick>=0?NETF.myPick:G.cur,mC=CHARS[mi],pC=pv>=0?CHARS[pv]:null;L=NETF.host?mC:pC;R=NETF.host?pC:mC;}
  else{L=p0?CHARS[G.cur]:CHARS[G.p1];R=p0?null:CHARS[G.cur];}
